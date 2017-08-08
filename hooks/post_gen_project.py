@@ -8,10 +8,9 @@ import json
 import codecs
 import shutil
 import base64
-import urllib
-import urllib2
 import getpass
 import subprocess
+import requests as requests_py
 
 REPO_PATH = os.getcwd()
 LICENSES_DIRPATH = os.path.join(REPO_PATH, 'LICENSES')
@@ -64,34 +63,23 @@ def run(command, log=True):
 
 class requests(object):
 
-    @staticmethod
-    def _request(url, headers, data, log):
-        try:
-            req = urllib2.Request(url, data=data, headers=headers)
-            response = urllib2.urlopen(req)
-            content = response.read()
-            response.close()
-        except urllib2.HTTPError as error:
-            message = error.read()
-            error.close()
-            args = (error.code, error.reason, url, message)
-            print('{} {}: {}\n{}'.format(*args))
-            raise SystemExit
-        else:
-            if content and log:
-                print('{}\n{}'.format(url, content))
-            else:
-                print(url)
-        return content
-
     @classmethod
     def get(cls, url, headers={}, log=True):
-        return cls._request(url, headers, None, log)
+        r = requests_py.get(url, headers=headers)
+        if r.text and log:
+            print('{}\n{}'.format(url, r.text))
+        else:
+            print(url)
+        return r.text.encode(r.encoding)
 
     @classmethod
     def post(cls, url, headers={}, data=None, log=True):
-        return cls._request(url, headers, data, log)
-
+        r = requests_py.post(url, headers=headers, data=data)
+        if r.text and log:
+             print('{}\n{}'.format(url, r.text))
+        else:
+            print(url)
+        return r.text.encode(r.encoding)
 
 def create_remote_repo():
     {% if cookiecutter.remote_provider == 'github.com' %}
